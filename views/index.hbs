@@ -1,0 +1,107 @@
+<!-- main body of our application -->
+<div class="container" id="events">
+  <div id="alertsection">
+
+  </div>
+    <div class="row">
+        <div class="col-sm-8">
+            <div id="statuspanel" class="panel panel-default">
+                <div class="panel-heading">
+                    Status
+                </div>
+                <table class="table first-col-strong">
+                    <tr>
+                        <td><i class="glyphicon glyphicon-info-sign"></i> Status</td>
+                        <td>
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 45%">
+                                    Downloading...
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><i class="glyphicon glyphicon-music"></i> Item</td>
+                        <td>Album 1</td>
+                    </tr>
+                    <tr>
+                        <td><i class="glyphicon glyphicon-user"></i> Artist</td>
+                        <td>The Artist</td>
+                    </tr>
+                    <tr>
+                        <td><i class="glyphicon glyphicon-time"></i> Started</td>
+                        <td>1970-01-01 00:00:00</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-sm-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    Add To Queue
+                </div>
+                <div class="panel-body">
+
+                    <div class="form-group">
+                        <input class="form-control" placeholder="Spotify URI" v-model="event.name">
+                    </div>
+
+                    <button class="btn btn-primary" v-on:click="addEvent">Submit</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-8">
+          <div class="panel panel-default">
+            <div class="panel-heading">
+              Past Items
+            </div>
+            <div class="panel-body">
+              <div class="form-group">
+                  <input class="form-control" placeholder="Search" v-model="event.name">
+              </div>
+
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="event in events">
+                    <td>\{{event.name}}</td>
+                    <td>\{{event.date}}</td>
+                    <td>\{{event.description}}</td>
+                    <td>
+                      <button class="btn btn-primary pull-right" v-on:click="deleteEvent($index)">
+                          <i class="glyphicon glyphicon-download"></i> Download
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+        <div class="col-sm-4">
+          <div class="panel panel-default">
+            <div class="panel-heading">Queue</div>
+            <div class="panel-body">
+              <div class="list-group">
+                  <a href="#" class="list-group-item" v-for="event in events">
+                    <i class="glyphicon glyphicon-music"></i> \{{ event.name }}
+                    <button class="btn btn-xs btn-danger pull-right">Delete</button>
+                  </a>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+</div>

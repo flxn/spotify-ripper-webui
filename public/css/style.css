@@ -1,0 +1,7 @@
+table.first-col-strong tr td:first-child{
+  font-weight: bold;
+}
+
+#statuspanel .progress {
+  margin-bottom: 0;
+}
