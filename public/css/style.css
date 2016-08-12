@@ -5,3 +5,8 @@ table.first-col-strong tr td:first-child{
 #statuspanel .progress {
   margin-bottom: 0;
 }
+
+#queuesearch {
+  width: 200px;
+  margin-top: -5px;
+}

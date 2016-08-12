@@ -4,7 +4,8 @@
 
   </div>
     <div class="row">
-        <div class="col-sm-8">
+      <!--
+        <div class="col-sm-6">
             <div id="statuspanel" class="panel panel-default">
                 <div class="panel-heading">
                     Status
@@ -35,16 +36,16 @@
                 </table>
             </div>
         </div>
-
-        <div class="col-sm-4">
+-->
+        <div class="col-sm-12">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    Add To Queue
+                  Search
                 </div>
                 <div class="panel-body">
 
                     <div class="form-group">
-                        <input class="form-control" placeholder="Spotify URI" v-model="event.name">
+                        <input class="form-control" placeholder="Search Spotify" v-model="spotifyItem.name">
                     </div>
 
                     <button class="btn btn-primary" v-on:click="addEvent">Submit</button>
@@ -54,54 +55,88 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-sm-8">
+        <div class="col-sm-12">
           <div class="panel panel-default">
             <div class="panel-heading">
-              Past Items
+              <input id="queuesearch" class="form-control input-sm pull-right" placeholder="Search" v-model="searchstring">
+              Queue
             </div>
             <div class="panel-body">
-              <div class="form-group">
-                  <input class="form-control" placeholder="Search" v-model="event.name">
-              </div>
-
               <table class="table table-hover">
                 <thead>
                   <tr>
+                    <th>Status</th>
+                    <th>Type</th>
                     <th>Name</th>
-                    <th>Date</th>
-                    <th>Description</th>
+                    <th>Artist</th>
                     <th></th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="event in events">
-                    <td>\{{event.name}}</td>
-                    <td>\{{event.date}}</td>
-                    <td>\{{event.description}}</td>
+                  <tr v-for="item in queue | filterBy searchstring">
+                    <td v-if="item.status == consts.status.QUEUED"><p class="text-info"><i class="glyphicon glyphicon-info-sign"></i> in queue</p></td>
+                    <td v-if="item.status == consts.status.DOWNLOADING"><p class="text-primary"><i class="glyphicon glyphicon-info-sign"></i> in progress</p></td>
+                    <td v-if="item.status == consts.status.FINISHED"><p class="text-success"><i class="glyphicon glyphicon-info-sign"></i> finished</p></td>
+
+                    <td>\{{item.type}}</td>
+                    <td><i class="glyphicon glyphicon-music"></i> \{{item.name}}</td>
+                    <td><i class="glyphicon glyphicon-user"></i> \{{item.artist}}</td>
                     <td>
-                      <button class="btn btn-primary pull-right" v-on:click="deleteEvent($index)">
+                      <button class="btn btn-sm btn-primary pull-right" v-if="item.status == consts.status.FINISHED" v-on:click="deleteEvent($index)">
                           <i class="glyphicon glyphicon-download"></i> Download
+                      </button>
+                      <button class="btn btn-sm btn-primary pull-right" v-if="item.status == consts.status.DOWNLOADING" v-on:click="deleteEvent($index)" disabled>
+                          <i class="glyphicon glyphicon-download"></i> Downloading...
+                      </button>
+                      <button class="btn btn-sm btn-danger pull-right" v-if="item.status == consts.status.QUEUED" v-on:click="deleteEvent($index)">
+                          <i class="glyphicon glyphicon-trash"></i> Delete
                       </button>
                     </td>
                   </tr>
                 </tbody>
               </table>
+<!--
+              <div class="list-group">
+                  <a href="#" class="list-group-item" v-for="item in queue">
+                    <template v-if="item.status == consts.status.QUEUED">
+                      <button class="btn btn-danger pull-right">Delete</button>
+                      <h4><i class="glyphicon glyphicon-music"></i> \{{ item.name }}</h4>
+                      <p>
+                         <i class="glyphicon glyphicon-user"></i> \{{item.artist}}
+                      </p>
+                      <p class="text-info"><i class="glyphicon glyphicon-info-sign"></i> in queue</p>
+                    </template>
+
+                    <template v-if="item.status == consts.status.FINISHED">
+                      <button class="btn btn-primary pull-right" v-on:click="deleteEvent($index)">
+                          <i class="glyphicon glyphicon-download"></i> Download
+                      </button>
+                      <h4><i class="glyphicon glyphicon-music"></i> \{{ item.name }}</h4>
+                      <p>
+                         <i class="glyphicon glyphicon-user"></i> \{{item.artist}}
+                      </p>
+                      <p class="text-success"><i class="glyphicon glyphicon-info-sign"></i> download finished</p>
+                    </template>
+
+                    <template v-if="item.status == consts.status.DOWNLOADING">
+                      <button class="btn btn-primary pull-right" v-on:click="deleteEvent($index)" disabled>
+                          <i class="glyphicon glyphicon-refresh"></i> Downloading...
+                      </button>
+                      <h4><i class="glyphicon glyphicon-music"></i> \{{ item.name }}</h4>
+                      <p>
+                         <i class="glyphicon glyphicon-user"></i> \{{item.artist}}
+                      </p>
+                      <p class="text-primary"><i class="glyphicon glyphicon-info-sign"></i> in progress</p>
+                    </template>
+
+
+
+                  </a>
+              </div>
+-->
             </div>
           </div>
 
-        </div>
-        <div class="col-sm-4">
-          <div class="panel panel-default">
-            <div class="panel-heading">Queue</div>
-            <div class="panel-body">
-              <div class="list-group">
-                  <a href="#" class="list-group-item" v-for="event in events">
-                    <i class="glyphicon glyphicon-music"></i> \{{ event.name }}
-                    <button class="btn btn-xs btn-danger pull-right">Delete</button>
-                  </a>
-              </div>
-            </div>
-          </div>
         </div>
     </div>
 </div>
