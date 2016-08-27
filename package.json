@@ -14,6 +14,7 @@
     "hbs": "~4.0.0",
     "jquery": "^3.1.0",
     "morgan": "~1.7.0",
+    "request": "^2.74.0",
     "serve-favicon": "~2.3.0",
     "vue": "^1.0.26",
     "vue-resource": "^0.9.3"

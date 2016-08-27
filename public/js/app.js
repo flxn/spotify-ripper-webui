@@ -14,7 +14,11 @@ var spotifyItemStatus = {
 new Vue({
   el: '#events',
   data: {
+    config: { listLimit: 10 },
     consts: { type: spotifyItemType, status: spotifyItemStatus },
+    spotifyQuery: "",
+    searchResult: { uri: '', name: '', type: '', image_link: '', spotify_link: '' },
+    searchResults: [],
     spotifyItem: { uri: '', type: '', name: '', artist: '', status: '', date_added: '', date_download_started: '', date_download_finished: '' },
     queue: []
   },
@@ -61,6 +65,15 @@ new Vue({
     this.$set('queue', queue);
     },
 
+    addToQueue: function(uri) {
+      for (item of this.searchResults.items) {
+        if(item.uri == uri) {
+            console.log(item);
+        }
+
+      }
+    },
+
     addEvent: function() {
       if(this.spotifyItem.uri) {
         this.queue.push(this.spotifyItem);
@@ -74,6 +87,27 @@ new Vue({
       if(confirm("you sure to remove " + index)) {
         this.queue.splice(index,1);
       }
+    },
+
+    queryAPI: function(event){
+      this.$http.get('/search?q=' + encodeURIComponent(this.spotifyQuery)).then((response) => {
+        console.log(response);
+        var data = JSON.parse(response.body);
+        this.searchResults = data;
+      }, (response) => {
+        this.searchResults = [];
+        console.error(response);
+      });
     }
   }
-})
+});
+
+var filter = function(text, length, clamp){
+  clamp = clamp || '...';
+  var node = document.createElement('div');
+  node.innerHTML = text;
+  var content = node.textContent;
+  return content.length > length ? content.slice(0, length) + clamp : content;
+};
+
+Vue.filter('truncate', filter);
