@@ -27,87 +27,92 @@ new Vue({
   },
   methods: {
     fetchQueueItems: function() {
-      var queue = [
-      {
-        id: 1,
-        uri: '123',
-        type: spotifyItemType.ALBUM,
-        name: 'abc',
-        artist: 'random guy',
-        status: spotifyItemStatus.QUEUED,
-        date_added: '',
-        date_download_started: '',
-        date_download_finished: ''
-      },{
-        id: 2,
-        uri: '123',
-        type: spotifyItemType.ALBUM,
-        name: 'def',
-        artist: 'elephant',
-        status: spotifyItemStatus.DOWNLOADING,
-        date_added: '',
-        date_download_started: '',
-        date_download_finished: ''
-      },{
-        id: 3,
-        uri: '123',
-        type: spotifyItemType.ALBUM,
-        name: '123',
-        artist: 'The Artist',
-        status: spotifyItemStatus.FINISHED,
-        date_added: '',
-        date_download_started: '',
-        date_download_finished: ''
-      },
-    ];
-    // $set is a convenience method provided by Vue that is similar to pushing
-    // data onto an array
-    this.$set('queue', queue);
+      var self = this;
+      this.$http.get('/queue').then((response) => {
+        console.group('queue data');
+        console.log(response.data);
+        console.groupEnd('queue data');
+        this.$set('queue', response.data);
+        $('[data-toggle="tooltip"]').tooltip();
+      }, (response) => {
+        $('#queuetable tbody').append('<tr><td colspan="4">Nothing in queue...</td></tr>');
+      });
     },
 
     addToQueue: function(uri) {
+      //spotifyItem: { uri: '', type: '', name: '', artist: '', status: '', date_added: '', date_download_started: '', date_download_finished: '' },
       for (item of this.searchResults.items) {
         if(item.uri == uri) {
-            console.log(item);
+            var newItem = {};
+            $.extend(newItem, this.spotifyItem, item);
+            newItem.status = spotifyItemStatus.QUEUED;
+            newItem.date_added = new Date().toISOString();
+            console.log(newItem);
+
+            this.$http.post('/queue', newItem).then((response) => {
+              this.queue.push(newItem);
+              var html = '<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>The ' + newItem.type.capitalize() + ' </strong>"' + newItem.name + '"</strong> has been added to the queue</div>';
+              $('#alertsection').html(html);
+            }, (response) => {
+              var responseClass = response.data.status == "ok" ? 'success' : 'danger';
+              var html = '<div class="alert alert-'+responseClass+' alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+response.data.msg+'</div>';
+              $('#alertsection').html(html);
+            });
+
+
         }
 
       }
     },
 
-    addEvent: function() {
-      if(this.spotifyItem.uri) {
-        this.queue.push(this.spotifyItem);
-        this.spotifyItem = { uri: '', type: '', name: '', artist: '', status: '', date_added: '', date_download_started: '', date_download_finished: '' };
-        var html = '<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button><strong>' + spotifyItem.name + '</strong> has been added to the queue</div>';
-        $('#alertsection').html(html);
-      }
-    },
-
-    deleteEvent: function(index) {
-      if(confirm("you sure to remove " + index)) {
-        this.queue.splice(index,1);
+    removeFromQueue: function(index) {
+      if(confirm("Are you sure that you want to remove this element from the queue?")) {
+        var removedItem = this.queue.splice(index,1)[0];
+        this.$http.post('/dequeue', {id: removedItem.id}).then((response) => {
+          var responseClass = response.data.status == "ok" ? 'success' : 'danger';
+          var html = '<div class="alert alert-'+responseClass+' alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+response.data.msg+'</div>';
+          $('#alertsection').html(html);
+        }, (response) => {
+          var responseClass = response.data.status == "ok" ? 'success' : 'danger';
+          var html = '<div class="alert alert-'+responseClass+' alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+response.data.msg+'</div>';
+          $('#alertsection').html(html);
+        });
       }
     },
 
     queryAPI: function(event){
+      $('#search-submit').attr('disabled', true).text('Querying...');
+
       this.$http.get('/search?q=' + encodeURIComponent(this.spotifyQuery)).then((response) => {
         console.log(response);
         var data = JSON.parse(response.body);
         this.searchResults = data;
+        $('#search-submit').attr('disabled', false).text('Submit');
       }, (response) => {
         this.searchResults = [];
         console.error(response);
+        $('#search-submit').attr('disabled', false).text('Submit');
       });
     }
   }
 });
 
-var filter = function(text, length, clamp){
+Vue.filter('truncate', function(text, length, clamp){
   clamp = clamp || '...';
   var node = document.createElement('div');
   node.innerHTML = text;
   var content = node.textContent;
   return content.length > length ? content.slice(0, length) + clamp : content;
-};
+});
 
-Vue.filter('truncate', filter);
+Vue.filter('notEmpty', function (arr) {
+  return arr.length > 0;
+});
+
+String.prototype.capitalize = function() {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+}
+
+$(function () {
+  $('[data-toggle="tooltip"]').tooltip();
+});

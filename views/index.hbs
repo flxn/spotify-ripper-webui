@@ -4,50 +4,18 @@
 
     </div>
     <div class="row">
-        <!--
-        <div class="col-sm-6">
-            <div id="statuspanel" class="panel panel-default">
-                <div class="panel-heading">
-                    Status
-                </div>
-                <table class="table first-col-strong">
-                    <tr>
-                        <td><i class="glyphicon glyphicon-info-sign"></i> Status</td>
-                        <td>
-                            <div class="progress">
-                                <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 45%">
-                                    Downloading...
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td><i class="glyphicon glyphicon-music"></i> Item</td>
-                        <td>Album 1</td>
-                    </tr>
-                    <tr>
-                        <td><i class="glyphicon glyphicon-user"></i> Artist</td>
-                        <td>The Artist</td>
-                    </tr>
-                    <tr>
-                        <td><i class="glyphicon glyphicon-time"></i> Started</td>
-                        <td>1970-01-01 00:00:00</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
--->
+
         <div class="col-sm-12">
             <div class="panel panel-default">
                 <div class="panel-heading">
-                    Search
+                    Search {{foo}}
                 </div>
                 <div class="panel-body">
                     <div class="input-group">
 
-                        <input class="form-control" placeholder="Search Spotify" v-model="spotifyQuery" v-on:keyup.enter="queryAPI">
+                        <input class="form-control" placeholder="Search artists, albums, tracks or playlists on Spotify or enter a Spotify URI" v-model="spotifyQuery" v-on:keyup.enter="queryAPI">
                         <div class="input-group-btn">
-                            <button class="btn btn-primary" v-on:click="queryAPI">Submit</button>
+                            <button class="btn btn-primary" id="search-submit" v-on:click="queryAPI">Submit</button>
                         </div>
 
                     </div>
@@ -60,10 +28,9 @@
                                 <img class="img-rounded" v-bind:src="searchResults.items[0].image_link" height="100" alt="">
                             </div>
                             <div class="media-body">
-                                <h3 class="media-heading">\{{searchResults.items[0].name}}</h3>
+                                <h3 class="media-heading">\{{searchResults.items[0].name}} [\{{searchResults.items[0].type.capitalize()}}]</h3>
                                 <ul class="list-unstyled">
                                   <li>Link: <a href="\{{searchResults.items[0].spotify_link}}" target="_blank" v-text="searchResults.items[0].spotify_link | truncate 50 '...'"></a></li>
-                                  <li></li>
                                 </ul>
                             </div>
                             <div class="media-right">
@@ -72,114 +39,10 @@
                         </div>
 
                         <div class="panel-group" id="accordion" v-if="searchResults.type == 'suggestions'" role="tablist" aria-multiselectable="true">
-                            <div class="panel panel-default">
-                                <div class="panel-heading" role="tab" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne" id="headingOne">
-                                    <h4 class="panel-title">
-                                      <a role="button">
-                                        Albums
-                                      </a>
-                                    </h4>
-                                </div>
-                                <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
-                                    <div class="panel-body">
-                                        <ul class="media-list">
-                                            <li class="media" v-for="item in searchResults.items | filterBy 'album' in 'type' | limitBy config.listLimit">
-                                                <div class="media-left">
-                                                    <img class="img-rounded" v-bind:src="item.image_link" height="45" alt="">
-                                                </div>
-                                                <div class="media-body">
-                                                    <h4 class="media-heading">\{{item.name}}</h4>
-                                                    <p>Link: <a href="\{{item.spotify_link}}" target="_blank" v-text="item.spotify_link | truncate 50 '...'"></a></p>
-                                                </div>
-                                                <div class="media-right">
-                                                    <button class="btn btn-success" v-on:click="addToQueue(item.uri)"><span class="glyphicon glyphicon-plus"></span> Add</button>
-                                                </div>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="panel panel-default">
-                                <div class="panel-heading" role="tab" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo" id="headingTwo">
-                                    <h4 class="panel-title">
-                                      <a class="collapsed" role="button">
-                                        Artists
-                                      </a>
-                                    </h4>
-                                </div>
-                                <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
-                                    <div class="panel-body">
-                                        <ul class="media-list">
-                                            <li class="media" v-for="item in searchResults.items | filterBy 'artist' in 'type' | limitBy config.listLimit">
-                                                <div class="media-left">
-                                                    <img class="img-rounded" v-bind:src="item.image_link" height="45" alt="">
-                                                </div>
-                                                <div class="media-body">
-                                                    <h4 class="media-heading">\{{item.name}}</h4>
-                                                    <p>Link: <a href="\{{item.spotify_link}}" target="_blank" v-text="item.spotify_link | truncate 50 '...'"></a></p>
-                                                </div>
-                                                <div class="media-right">
-                                                    <button class="btn btn-success" v-on:click="addToQueue(item.uri)"><span class="glyphicon glyphicon-plus"></span> Add</button>
-                                                </div>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="panel panel-default">
-                                <div class="panel-heading" role="tab" id="headingThree" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                    <h4 class="panel-title">
-                                      <a class="collapsed" role="button">
-                                        Playlists
-                                      </a>
-                                    </h4>
-                                </div>
-                                <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
-                                    <div class="panel-body">
-                                        <ul class="media-list">
-                                            <li class="media" v-for="item in searchResults.items | filterBy 'playlist' in 'type' | limitBy config.listLimit">
-                                                <div class="media-left">
-                                                    <img class="img-rounded" v-bind:src="item.image_link" width="45" alt="">
-                                                </div>
-                                                <div class="media-body">
-                                                    <h4 class="media-heading">\{{item.name}}</h4>
-                                                    <p>Link: <a href="\{{item.spotify_link}}" target="_blank" v-text="item.spotify_link | truncate 50 '...'"></a></p>
-                                                </div>
-                                                <div class="media-right">
-                                                    <button class="btn btn-success" v-on:click="addToQueue(item.uri)"><span class="glyphicon glyphicon-plus"></span> Add</button>
-                                                </div>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="panel panel-default">
-                                <div class="panel-heading" role="tab" id="headingFour" data-toggle="collapse" data-parent="#accordion" href="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                                    <h4 class="panel-title">
-                                      <a class="collapsed" role="button">
-                                        Tracks
-                                      </a>
-                                    </h4>
-                                </div>
-                                <div id="collapseFour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
-                                    <div class="panel-body">
-                                        <ul class="media-list">
-                                            <li class="media" v-for="item in searchResults.items | filterBy 'track' in 'type' | limitBy config.listLimit">
-                                                <div class="media-left">
-                                                    <img class="img-rounded" v-bind:src="item.image_link" height="45" alt="">
-                                                </div>
-                                                <div class="media-body">
-                                                    <h4 class="media-heading">\{{item.name}}</h4>
-                                                    <p>Link: <a href="\{{item.spotify_link}}" target="_blank" v-text="item.spotify_link | truncate 50 '...'"></a></p>
-                                                </div>
-                                                <div class="media-right">
-                                                    <button class="btn btn-success" v-on:click="addToQueue(item.uri)"><span class="glyphicon glyphicon-plus"></span> Add</button>
-                                                </div>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
+                            {{result-panel "album"}}
+                            {{result-panel "artist"}}
+                            {{result-panel "track"}}
+                            {{result-panel "playlist"}}
                         </div>
                     </div>
 
@@ -196,39 +59,36 @@
                     <input id="queuesearch" class="form-control input-sm pull-right" placeholder="Search" v-model="searchstring"> Queue
                 </div>
                 <div class="panel-body">
-                    <table class="table table-hover">
+                    <table id="queuetable" class="table table-hover">
                         <thead>
                             <tr>
                                 <th>Status</th>
-                                <th>Type</th>
                                 <th>Name</th>
-                                <th>Artist</th>
+                                <th>Type</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr v-for="item in queue | filterBy searchstring">
                                 <td v-if="item.status == consts.status.QUEUED">
-                                    <p class="text-info"><i class="glyphicon glyphicon-info-sign"></i> in queue</p>
+                                    <p class="text-info" data-toggle="tooltip" data-placement="top" title="Added: \{{new Date(item.date_added).toLocaleString()}}"><i class="glyphicon glyphicon-info-sign"></i> in queue</p>
                                 </td>
                                 <td v-if="item.status == consts.status.DOWNLOADING">
-                                    <p class="text-primary"><i class="glyphicon glyphicon-info-sign"></i> in progress</p>
+                                    <p class="text-primary" data-placement="top" title="Download Started: \{{new Date(item.date_download_started).toLocaleString()}}"><i class="glyphicon glyphicon-info-sign"></i> in progress</p>
                                 </td>
                                 <td v-if="item.status == consts.status.FINISHED">
-                                    <p class="text-success"><i class="glyphicon glyphicon-info-sign"></i> finished</p>
+                                    <p class="text-success" data-placement="top" title="Download Finished: \{{new Date(item.date_download_finished).toLocaleString()}}"><i class="glyphicon glyphicon-info-sign"></i> finished</p>
                                 </td>
-
-                                <td>\{{item.type}}</td>
-                                <td><i class="glyphicon glyphicon-music"></i> \{{item.name}}</td>
-                                <td><i class="glyphicon glyphicon-user"></i> \{{item.artist}}</td>
+                                <td><img class="" v-bind:src="item.image_link" height="20" alt=""> \{{item.name}}</td>
+                                <td>\{{item.type.capitalize()}}</td>
                                 <td>
-                                    <button class="btn btn-sm btn-primary pull-right" v-if="item.status == consts.status.FINISHED" v-on:click="deleteEvent($index)">
+                                    <a href="\{{item.download_link}}" class="btn btn-sm btn-primary pull-right" v-if="item.status == consts.status.FINISHED">
                                         <i class="glyphicon glyphicon-download"></i> Download
+                                    </a>
+                                    <button class="btn btn-sm btn-primary pull-right" v-if="item.status == consts.status.DOWNLOADING" disabled>
+                                        <i class="glyphicon glyphicon-refresh"></i> Downloading...
                                     </button>
-                                    <button class="btn btn-sm btn-primary pull-right" v-if="item.status == consts.status.DOWNLOADING" v-on:click="deleteEvent($index)" disabled>
-                                        <i class="glyphicon glyphicon-download"></i> Downloading...
-                                    </button>
-                                    <button class="btn btn-sm btn-danger pull-right" v-if="item.status == consts.status.QUEUED" v-on:click="deleteEvent($index)">
+                                    <button class="btn btn-sm btn-danger pull-right" v-if="item.status == consts.status.QUEUED" v-on:click="removeFromQueue($index)">
                                         <i class="glyphicon glyphicon-trash"></i> Delete
                                     </button>
                                 </td>

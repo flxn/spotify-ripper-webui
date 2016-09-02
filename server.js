@@ -4,11 +4,22 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var hbs = require('hbs');
+var session = require('express-session');
+var config = require('./config.js');
 
 var routes = require('./routes/index');
 var search = require('./routes/search');
 
 var app = express();
+
+app.set('trust proxy', 1);
+app.use(session({
+  secret: config.session_secret,
+  cookie: {maxAge: 100000},
+  resave: true,
+  saveUninitialized: true
+}));
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -23,7 +34,22 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
+app.use('/download', express.static(path.join(__dirname, 'out')));
 
+function checkAuth (req, res, next) {
+	console.log('checkAuth ' + req.url);
+
+	// don't serve /secure to those not logged in
+	// you should add to this list, for each and every secure url
+	if (config.password && req.url != '/login' && (!req.session || !req.session.authenticated)) {
+		res.redirect('/login');
+		return;
+	}
+
+	next();
+}
+
+app.use(checkAuth);
 app.use('/', routes);
 app.use('/search', search);
 
