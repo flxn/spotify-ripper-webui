@@ -45,7 +45,7 @@ function getNextItemInQueue(cb) {
 function checkStatus() {
     if (config.worker_min_hour != null && config.worker_max_hour != null) {
         var currentHour = new Date().getHours();
-        if (currentHour >= config.worker_max_hour || currentHour < config.worker_min_hour) {
+        if (currentHour >= config.worker_max_hour && currentHour < config.worker_min_hour) {
             console.log('download only allowed between ' + config.worker_min_hour + ' and ' + config.worker_max_hour + ' o\'clock');
             console.log('retrying in ' + config.worker_check_interval / 1000 + ' seconds...\n');
             setTimeout(checkStatus, config.worker_check_interval);
