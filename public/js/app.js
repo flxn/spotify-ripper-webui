@@ -28,13 +28,13 @@ new Vue({
   methods: {
     fetchQueueItems: function() {
       var self = this;
-      this.$http.get('/queue').then((response) => {
+      this.$http.get('/queue').then(function(response) {
         console.group('queue data');
         console.log(response.data);
         console.groupEnd('queue data');
         this.$set('queue', response.data);
         $('[data-toggle="tooltip"]').tooltip();
-      }, (response) => {
+      }, function(response) {
         $('#queuetable tbody').append('<tr><td colspan="4">Nothing in queue...</td></tr>');
       });
     },
@@ -49,11 +49,11 @@ new Vue({
             newItem.date_added = new Date().toISOString();
             console.log(newItem);
 
-            this.$http.post('/queue', newItem).then((response) => {
+            this.$http.post('/queue', newItem).then(function(response) {
               this.queue.push(newItem);
               var html = '<div class="alert alert-success alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>The ' + newItem.type.capitalize() + ' </strong>"' + newItem.name + '"</strong> has been added to the queue</div>';
               $('#alertsection').html(html);
-            }, (response) => {
+            }, function(response) {
               var responseClass = response.data.status == "ok" ? 'success' : 'danger';
               var html = '<div class="alert alert-'+responseClass+' alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+response.data.msg+'</div>';
               $('#alertsection').html(html);
@@ -68,11 +68,11 @@ new Vue({
     removeFromQueue: function(index) {
       if(confirm("Are you sure that you want to remove this element from the queue?")) {
         var removedItem = this.queue.splice(index,1)[0];
-        this.$http.post('/dequeue', {id: removedItem.id}).then((response) => {
+        this.$http.post('/dequeue', {id: removedItem.id}).then(function(response) {
           var responseClass = response.data.status == "ok" ? 'success' : 'danger';
           var html = '<div class="alert alert-'+responseClass+' alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+response.data.msg+'</div>';
           $('#alertsection').html(html);
-        }, (response) => {
+        }, function(response) {
           var responseClass = response.data.status == "ok" ? 'success' : 'danger';
           var html = '<div class="alert alert-'+responseClass+' alert-dismissible" role="alert"><button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'+response.data.msg+'</div>';
           $('#alertsection').html(html);
@@ -83,12 +83,12 @@ new Vue({
     queryAPI: function(event){
       $('#search-submit').attr('disabled', true).text('Querying...');
 
-      this.$http.get('/search?q=' + encodeURIComponent(this.spotifyQuery)).then((response) => {
+      this.$http.get('/search?q=' + encodeURIComponent(this.spotifyQuery)).then(function(response) {
         console.log(response);
         var data = JSON.parse(response.body);
         this.searchResults = data;
         $('#search-submit').attr('disabled', false).text('Submit');
-      }, (response) => {
+      }, function(response) {
         this.searchResults = [];
         console.error(response);
         $('#search-submit').attr('disabled', false).text('Submit');
