@@ -89,7 +89,7 @@ function checkStatus() {
                     fs.mkdir(downloadFolderPath);
                 }
 
-                var cmdargs = ['--flat', '-d', downloadFolderPath, '--user', config.spotify_user, '--password', config.spotify_password];
+                var cmdargs = ['--id3-v23', '-d', downloadFolderPath, '--user', config.spotify_user, '--password', config.spotify_password];
 
                 if (config.spotify_appkey_path) {
                     cmdargs.push('-k');
@@ -107,7 +107,7 @@ function checkStatus() {
 
                 spotifyRipper.on('close', (code) => {
                     console.log("ripper exited with code: " + code);
-                    var compressCmd = spawn('tar', ['czf', outputDir + itemFolderName + '.tar.gz', '-C', downloadFolderPath, '.']);
+                    var compressCmd = spawn('tar', ['czf', outputDir + itemFolderName + '.tar.gz', '-C', downloadTempDir, itemFolderName]);
 
                     compressCmd.stdout.on('data', (data) => {});
 
