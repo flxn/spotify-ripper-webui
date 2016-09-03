@@ -4,12 +4,14 @@ var rimraf = require('rimraf');
 var config = require('./config.js');
 var path = require('path');
 var mysql = require('mysql');
-var con = mysql.createConnection({
-    host: config.mysql_host,
-    user: config.mysql_user,
-    password: config.mysql_password,
-    database: config.mysql_database
+var pool = mysql.createPool({
+  connectionLimit: 100,
+  host: config.mysql_host,
+  user: config.mysql_user,
+  password: config.mysql_password,
+  database: config.mysql_database
 });
+
 var spawn = require('child_process').spawn;
 var basePath = path.dirname(require.main.filename);
 console.log(basePath);
@@ -37,7 +39,7 @@ function init() {
 }
 
 function getNextItemInQueue(cb) {
-    con.query('SELECT * FROM queue WHERE status = ' + spotifyItemStatus.QUEUED + ' ORDER BY date_added ASC LIMIT 1', function(err, rows, fields) {
+    pool.query('SELECT * FROM queue WHERE status = ' + spotifyItemStatus.QUEUED + ' ORDER BY date_added ASC LIMIT 1', function(err, rows, fields) {
         return cb(rows[0]);
     });
 }
@@ -45,14 +47,25 @@ function getNextItemInQueue(cb) {
 function checkStatus() {
     if (config.worker_min_hour != null && config.worker_max_hour != null) {
         var currentHour = new Date().getHours();
-        if (currentHour >= config.worker_max_hour && currentHour < config.worker_min_hour) {
-            console.log('download only allowed between ' + config.worker_min_hour + ' and ' + config.worker_max_hour + ' o\'clock');
-            console.log('retrying in ' + config.worker_check_interval / 1000 + ' seconds...\n');
-            setTimeout(checkStatus, config.worker_check_interval);
-            return;
+        var block = false;
+        if(config.worker_min_hour > config.worker_max_hour) {
+          if (currentHour >= config.worker_max_hour && currentHour < config.worker_min_hour) {
+              block = true;
+          }
+        } else {
+          if (currentHour >= config.worker_max_hour || currentHour < config.worker_min_hour) {
+              block = true;
+          }
+        }
+
+        if(block) {
+          console.log('download only allowed between ' + config.worker_min_hour + ' and ' + config.worker_max_hour + ' o\'clock');
+          console.log('retrying in ' + config.worker_check_interval / 1000 + ' seconds...\n');
+          setTimeout(checkStatus, config.worker_check_interval);
+          return;
         }
     }
-    con.query('SELECT * FROM queue WHERE status = ' + spotifyItemStatus.DOWNLOADING, function(err, rows, fields) {
+    pool.query('SELECT * FROM queue WHERE status = ' + spotifyItemStatus.DOWNLOADING, function(err, rows, fields) {
         if (rows.length == 0) {
             console.log('status: idle');
             console.log('retrieving next item...');
@@ -66,7 +79,7 @@ function checkStatus() {
                 console.log('=> Name: ' + nextItem.name + ' | Added: ' + nextItem.date_added);
                 console.log('starting download...');
 
-                con.query('UPDATE queue SET status = ? WHERE id = ?', [spotifyItemStatus.DOWNLOADING, nextItem.id], function(err, rows, fields) {
+                pool.query('UPDATE queue SET status = ? WHERE id = ?', [spotifyItemStatus.DOWNLOADING, nextItem.id], function(err, rows, fields) {
 
                 });
 
@@ -105,7 +118,7 @@ function checkStatus() {
                     compressCmd.on('close', (code) => {
                         console.log('compress exited with code: ' + code);
 
-                        con.query('UPDATE queue SET status = ?, download_link = ? WHERE id = ?', [spotifyItemStatus.FINISHED, 'download/' + itemFolderName + '.tar.gz', nextItem.id], function(err, rows, fields) {
+                        pool.query('UPDATE queue SET status = ?, download_link = ? WHERE id = ?', [spotifyItemStatus.FINISHED, 'download/' + itemFolderName + '.tar.gz', nextItem.id], function(err, rows, fields) {
 
                         });
 

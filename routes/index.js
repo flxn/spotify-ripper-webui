@@ -5,7 +5,8 @@ eval(fs.readFileSync('./lib/functions.js').toString());
 var hbs = require('hbs');
 var config = require('../config.js');
 var mysql = require('mysql');
-var con = mysql.createConnection({
+var pool = mysql.createPool({
+  connectionLimit: 100,
   host: config.mysql_host,
   user: config.mysql_user,
   password: config.mysql_password,
@@ -58,7 +59,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/queue', function(req, res, next) {
-  con.query('SELECT * FROM queue', function(err, rows, fields) {
+  pool.query('SELECT * FROM queue', function(err, rows, fields) {
     if(err) throw err;
 
     res.send(rows);
@@ -68,7 +69,7 @@ router.get('/queue', function(req, res, next) {
 router.post('/queue', function(req, res, next) {
   console.log(req.body);
   var values = [req.body.uri, req.body.type, req.body.name, req.body.spotify_link, req.body.image_link];
-  con.query('INSERT INTO queue (uri,type,name,artist,status,date_added,spotify_link,image_link) VALUES (?, ?, ?, "", 0, NOW(), ?, ?)', values, function(err, rows, fields) {
+  pool.query('INSERT INTO queue (uri,type,name,artist,status,date_added,spotify_link,image_link) VALUES (?, ?, ?, "", 0, NOW(), ?, ?)', values, function(err, rows, fields) {
     if(err) {
       res.send({status: 'error', msg: 'An error occured while inserting the item.'})
     } else {
@@ -79,7 +80,7 @@ router.post('/queue', function(req, res, next) {
 
 router.post('/dequeue', function(req, res, next) {
   if(req.body.id) {
-    con.query('DELETE FROM queue WHERE id = ?', [parseInt(req.body.id)], function(err, rows, fields) {
+    pool.query('DELETE FROM queue WHERE id = ?', [parseInt(req.body.id)], function(err, rows, fields) {
       if(err) {
         res.send({status: 'error', msg: 'An error occured while deleting the item.'})
       } else {
